@@ -10,6 +10,7 @@ import {
 import { FormBuilder } from '@angular/forms';
 import { Book } from '@tmo/shared/models';
 import { Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter } from 'rxjs/operators';
 
 @Component({
   selector: 'tmo-book-search',
@@ -19,7 +20,12 @@ import { Subscription } from 'rxjs';
 export class BookSearchComponent implements OnInit, OnDestroy {
 
   books: ReadingListBook[];
-  sub = new Subscription();
+  /**
+   * In order to unsubscribe observables I am creating individual subscription objects. This is because there are just two subscriptions in this component.
+   * If there are more subscriptions in the component then we can also use Subject or subsink library to unsubscribe all subscriptions at a time.
+   */
+  getAllBooksSub = new Subscription();
+  inputValueSub = new Subscription();
   displayResults = false;
   searchForm = this.fb.group({
     term: ''
@@ -28,16 +34,26 @@ export class BookSearchComponent implements OnInit, OnDestroy {
   constructor(
     private readonly store: Store,
     private readonly fb: FormBuilder
-  ) {}
+  ) { }
 
   get searchTerm(): string {
     return this.searchForm.value.term;
   }
 
   ngOnInit(): void {
-    this.sub = this.store.select(getAllBooks).subscribe(books => {
+    this.getAllBooksSub = this.store.select(getAllBooks).subscribe(books => {
       this.books = books;
     });
+    this.autoSearchOnValueChange();
+  }
+
+  autoSearchOnValueChange() {
+    this.inputValueSub = this.searchForm.valueChanges
+      .pipe(
+        debounceTime(500),
+        distinctUntilChanged()
+      )
+      .subscribe(() =>this.searchBooks());
   }
 
   formatDate(date: void | string) {
@@ -56,15 +72,17 @@ export class BookSearchComponent implements OnInit, OnDestroy {
   }
 
   searchBooks() {
-    if (this.searchForm.value.term) {
+    if (!!this.searchTerm) {
       this.store.dispatch(searchBooks({ term: this.searchTerm }));
       this.displayResults = true;
     } else {
+      this.displayResults = false;
       this.store.dispatch(clearSearch());
     }
   }
 
   ngOnDestroy() {
-    this.sub.unsubscribe();
+    this.getAllBooksSub.unsubscribe();
+    this.inputValueSub.unsubscribe();
   }
 }
