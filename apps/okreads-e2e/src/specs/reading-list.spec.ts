@@ -2,7 +2,7 @@ import { $, browser, ExpectedConditions, $$ } from 'protractor';
 import { expect } from 'chai';
 
 describe('When: I use the reading list feature', () => {
-  xit('Then: I should see my reading list', async () => {
+  it('Then: I should see my reading list', async () => {
     await browser.get('/');
     await browser.wait(
       ExpectedConditions.textToBePresentInElement($('tmo-root'), 'okreads')
