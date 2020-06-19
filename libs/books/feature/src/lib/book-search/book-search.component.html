@@ -39,7 +39,8 @@
               [disabled]="b.isAdded"
               aria-label="'Add ' + b.title + ' to reading list'"
             >
-              Want to Read
+            <span *ngIf="b.finished">Finished</span>
+            <span *ngIf="!b.finished">Want to Read</span>
             </button>
           </div>
         </div>

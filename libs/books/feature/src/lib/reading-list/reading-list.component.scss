@@ -40,6 +40,14 @@
   white-space: nowrap;
 }
 
+.reading-list-item--finished--title,
+.reading-list-item--finished--date {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  text-align: center;
+}
+
 .empty {
   font-weight: 100;
   font-size: 1rem;
